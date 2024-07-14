@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "BluStorage Manager",
+  "version": "1.0.0",
+  "description": "Manage your browser's storages easily from here.",
+  "author": "Sk Sulaiman",
+  "offline_enabled": true,
+  "minimum_chrome_version": "88",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "cookies",
+    "downloads",
+    "storage",
+    "unlimitedStorage",
+    "contextMenus"
+  ],
+  "incognito": "split",
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "logo.png"
+  },
+  "icons": {
+    "16": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

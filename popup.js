@@ -39,8 +39,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Function to get Local Storage items
   async function getLocalStorageItems() {
     return new Promise((resolve) => {
-      chrome.storage.local.get(null, (items) => {
-        resolve(items);
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.scripting.executeScript(
+          {
+            target: { tabId: tabs[0].id },
+            func: () => {
+              return Object.entries(localStorage).reduce(
+                (acc, [key, value]) => {
+                  try {
+                    acc[key] = JSON.parse(value);
+                  } catch (e) {
+                    acc[key] = value;
+                  }
+                  return acc;
+                },
+                {}
+              );
+            },
+          },
+          (results) => {
+            if (results && results[0] && results[0].result) {
+              resolve(results[0].result);
+            } else {
+              resolve({});
+            }
+          }
+        );
       });
     });
   }
@@ -175,7 +199,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (e) {
       value = editValueInput.value;
     }
-    await updateItem(key, value,currentStorageType); // Update local storage
+    await updateItem(key, value, currentStorageType); // Update local storage
     modal.style.display = "none";
     await fetchAndDisplayStorageItems(currentStorageType); // Refresh display
   });
@@ -206,16 +230,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
   }
-  
+
   // Function to update an item in Local Storage
   async function updateLocalStorageItem(key, value) {
     return new Promise((resolve) => {
-      chrome.storage.local.set({ [key]: value }, () => {
-        resolve();
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+        if (!tab) {
+          console.error("No active tab found.");
+          resolve();
+          return;
+        }
+
+        chrome.storage.local.get(tab.url, (result) => {
+          let items = result[tab.url] || {};
+          items[key] = value;
+          chrome.storage.local.set({ [tab.url]: items }, () => {
+            resolve();
+          });
+        });
       });
     });
   }
-  
+
   // Function to update an item in Session Storage
   async function updateSessionStorageItem(key, value) {
     return new Promise((resolve) => {
@@ -235,18 +272,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
   }
-  
+
   // Function to update an item in Cookies
   async function updateCookieItem(key, value) {
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.cookies.set({
-          url: tabs[0].url,
-          name: key,
-          value: JSON.stringify(value),
-        }, () => {
-          resolve();
-        });
+        chrome.cookies.set(
+          {
+            url: tabs[0].url,
+            name: key,
+            value: JSON.stringify(value),
+          },
+          () => {
+            resolve();
+          }
+        );
       });
     });
   }

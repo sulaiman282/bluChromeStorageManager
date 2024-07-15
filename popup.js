@@ -2,13 +2,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("Popup script loaded");
 
   // Fetch and display local storage items on load
-  await fetchAndDisplayStorageItems('localStorage');
+  await fetchAndDisplayStorageItems("localStorage");
 
   // Event listener for radio button changes
-  document.querySelectorAll('input[name="storageType"]').forEach(radio => {
-    radio.addEventListener('change', async (event) => {
+  document.querySelectorAll('input[name="storageType"]').forEach((radio) => {
+    radio.addEventListener("change", async (event) => {
       const storageType = event.target.value;
-      console.log(`Fetching ${storageType.charAt(0).toUpperCase() + storageType.slice(1)} Items...`);
+      console.log(
+        `Fetching ${
+          storageType.charAt(0).toUpperCase() + storageType.slice(1)
+        } Items...`
+      );
       await fetchAndDisplayStorageItems(storageType);
     });
   });
@@ -17,17 +21,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function fetchAndDisplayStorageItems(storageType) {
     let items;
     switch (storageType) {
-      case 'localStorage':
+      case "localStorage":
         items = await getLocalStorageItems();
         break;
-      case 'sessionStorage':
+      case "sessionStorage":
         items = await getSessionStorageItems();
         break;
-      case 'cookies':
+      case "cookies":
         items = await getCookies();
         break;
     }
-    console.log(`${storageType.charAt(0).toUpperCase() + storageType.slice(1)} Items:`, items);
+    console.log(
+      `${storageType.charAt(0).toUpperCase() + storageType.slice(1)} Items:`,
+      items
+    );
     displayItems(items);
   }
 
@@ -39,14 +46,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           {
             target: { tabId: tabs[0].id },
             func: () => {
-              return Object.entries(localStorage).reduce((acc, [key, value]) => {
-                try {
-                  acc[key] = JSON.parse(value);
-                } catch (e) {
-                  acc[key] = value;
-                }
-                return acc;
-              }, {});
+              return Object.entries(localStorage).reduce(
+                (acc, [key, value]) => {
+                  try {
+                    acc[key] = JSON.parse(value);
+                  } catch (e) {
+                    acc[key] = value;
+                  }
+                  return acc;
+                },
+                {}
+              );
             },
           },
           (results) => {
@@ -69,14 +79,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           {
             target: { tabId: tabs[0].id },
             func: () => {
-              return Object.entries(sessionStorage).reduce((acc, [key, value]) => {
-                try {
-                  acc[key] = JSON.parse(value);
-                } catch (e) {
-                  acc[key] = value;
-                }
-                return acc;
-              }, {});
+              return Object.entries(sessionStorage).reduce(
+                (acc, [key, value]) => {
+                  try {
+                    acc[key] = JSON.parse(value);
+                  } catch (e) {
+                    acc[key] = value;
+                  }
+                  return acc;
+                },
+                {}
+              );
             },
           },
           (results) => {
@@ -125,25 +138,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       row.innerHTML = `
         <td>${key}</td>
         <td>${JSON.stringify(value)}</td>
-        <td>
-          <button class="delete-btn" data-key="${key}">Delete</button>
-          <button class="edit-btn" data-key="${key}">Edit</button>
+       <td>
+          <span class="edit-icon" data-key="${key}"><i class="fas fa-edit" style="color:black;font-size:16px;"></i></span>
+          <span class="delete-icon" data-key="${key}"><i class="fas fa-trash-alt" style="color:red;font-size:16px;margin-left:5px;"></i></span>
         </td>
       `;
       tableBody.appendChild(row);
     }
 
-    // Add event listeners to delete and edit buttons
-    tableBody.querySelectorAll('.delete-btn').forEach(button => {
-      button.addEventListener('click', async () => {
-        const key = button.getAttribute('data-key');
+    // Add event listeners to delete and edit icons
+    tableBody.querySelectorAll(".delete-icon").forEach((icon) => {
+      icon.addEventListener("click", async () => {
+        const key = icon.getAttribute("data-key");
         await deleteItem(key);
       });
     });
 
-    tableBody.querySelectorAll('.edit-btn').forEach(button => {
-      button.addEventListener('click', async () => {
-        const key = button.getAttribute('data-key');
+    tableBody.querySelectorAll(".edit-icon").forEach((icon) => {
+      icon.addEventListener("click", async () => {
+        const key = icon.getAttribute("data-key");
         openEditModal(key, items[key]);
       });
     });
@@ -151,10 +164,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to delete an item
   async function deleteItem(key) {
-    const confirmDelete = confirm(`Are you sure you want to delete the item with key '${key}'?`);
+    const confirmDelete = confirm(
+      `Are you sure you want to delete the item with key '${key}'?`
+    );
     if (confirmDelete) {
       localStorage.removeItem(key); // Remove from local storage
-      await fetchAndDisplayStorageItems('localStorage'); // Refresh display
+      await fetchAndDisplayStorageItems("localStorage"); // Refresh display
     }
   }
 
@@ -189,7 +204,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     localStorage.setItem(key, JSON.stringify(value)); // Update local storage
     modal.style.display = "none";
-    await fetchAndDisplayStorageItems('localStorage'); // Refresh display
+    await fetchAndDisplayStorageItems("localStorage"); // Refresh display
   });
 
   // Cancel edit button functionality

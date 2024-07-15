@@ -3,6 +3,7 @@
   <head>
     <title>BluStorage Manager</title>
     <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   </head>
   <body>
     <div style="display: flex; align-items: center; gap: 8px; display: flex; align-items: center; justify-content: center;">
@@ -11,17 +12,17 @@
     </div>
   
     <form id="storageForm">
-      <label>
+      <label >
         <input type="radio" name="storageType" value="localStorage" checked />
-        Local Storage
+        <span>Local Storage</span>
       </label>
       <label>
         <input type="radio" name="storageType" value="sessionStorage" />
-        Session Storage
+        <span>Session Storage</span>
       </label>
       <label>
         <input type="radio" name="storageType" value="cookies" />
-        Cookies
+        <span>Cookies</span>
       </label>
     </form>
     <table id="storageTable">
@@ -29,7 +30,7 @@
         <tr>
           <th>Key</th>
           <th>Value</th>
-          <th>Options</th>
+          <th style="text-align: center;">Options</th>
         </tr>
       </thead>
       <tbody id="storageTableBody">
@@ -45,11 +46,12 @@
         <label for="editKey">Key:</label>
         <input type="text" id="editKey" readonly />
         <label for="editValue">Value:</label>
-        <textarea id="editValue"></textarea>
-        <div>
-          <button id="saveEdit">Save</button>
-          <button id="cancelEdit">Cancel</button>
+        <textarea id="editValue" rows="5"></textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 6px;">
+          <button id="saveEdit" style="padding: 8px 16px; background-color: #007bff; color: #fff; border: none; cursor: pointer; border-radius: 4px;">Save</button>
+          <button id="cancelEdit" style="padding: 8px 16px; background-color: #6c757d; color: #fff; border: none; cursor: pointer; border-radius: 4px;">Cancel</button>
         </div>
+        
       </div>
     </div>
 

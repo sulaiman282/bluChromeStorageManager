@@ -293,7 +293,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Open modal function
   function openEditModal(key, value) {
     editKeyInput.value = key;
-    editValueInput.value = JSON.stringify(value);
+    editValueInput.value = JSON.stringify(value, null, 2);
     modal.style.display = "block";
   }
 

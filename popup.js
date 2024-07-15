@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Fetch and display local storage items on load
   await fetchAndDisplayStorageItems('localStorage');
 
+  // Event listener for radio button changes
   document.querySelectorAll('input[name="storageType"]').forEach(radio => {
     radio.addEventListener('change', async (event) => {
       const storageType = event.target.value;
@@ -12,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // Function to fetch and display storage items
   async function fetchAndDisplayStorageItems(storageType) {
     let items;
     switch (storageType) {
@@ -29,62 +31,67 @@ document.addEventListener("DOMContentLoaded", async () => {
     displayItems(items);
   }
 
+  // Function to get Local Storage items
   async function getLocalStorageItems() {
-    let localStorageData = {};
-
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         chrome.scripting.executeScript(
           {
             target: { tabId: tabs[0].id },
-            func: () => Object.entries(localStorage).reduce((acc, [key, value]) => {
-              try {
-                acc[key] = JSON.parse(value);
-              } catch (e) {
-                acc[key] = value;
-              }
-              return acc;
-            }, {}),
+            func: () => {
+              return Object.entries(localStorage).reduce((acc, [key, value]) => {
+                try {
+                  acc[key] = JSON.parse(value);
+                } catch (e) {
+                  acc[key] = value;
+                }
+                return acc;
+              }, {});
+            },
           },
           (results) => {
             if (results && results[0] && results[0].result) {
-              localStorageData = results[0].result;
+              resolve(results[0].result);
+            } else {
+              resolve({});
             }
-            resolve(localStorageData);
           }
         );
       });
     });
   }
 
+  // Function to get Session Storage items
   async function getSessionStorageItems() {
-    let sessionStorageData = {};
-
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         chrome.scripting.executeScript(
           {
             target: { tabId: tabs[0].id },
-            func: () => Object.entries(sessionStorage).reduce((acc, [key, value]) => {
-              try {
-                acc[key] = JSON.parse(value);
-              } catch (e) {
-                acc[key] = value;
-              }
-              return acc;
-            }, {}),
+            func: () => {
+              return Object.entries(sessionStorage).reduce((acc, [key, value]) => {
+                try {
+                  acc[key] = JSON.parse(value);
+                } catch (e) {
+                  acc[key] = value;
+                }
+                return acc;
+              }, {});
+            },
           },
           (results) => {
             if (results && results[0] && results[0].result) {
-              sessionStorageData = results[0].result;
+              resolve(results[0].result);
+            } else {
+              resolve({});
             }
-            resolve(sessionStorageData);
           }
         );
       });
     });
   }
 
+  // Function to get Cookies
   async function getCookies() {
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -103,19 +110,97 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // Function to display items in the table
   function displayItems(items) {
-    const output = document.getElementById("output");
-    output.innerHTML = ""; // Clear previous output
+    const tableBody = document.getElementById("storageTableBody");
+    tableBody.innerHTML = ""; // Clear previous table rows
 
     if (Object.keys(items).length === 0) {
-      output.textContent = "No items found.";
+      tableBody.innerHTML = '<tr><td colspan="3">No items found.</td></tr>';
       return;
     }
 
     for (const [key, value] of Object.entries(items)) {
-      const itemDiv = document.createElement("div");
-      itemDiv.textContent = `${key}: ${JSON.stringify(value, null, 2)}`; // Stringify for display
-      output.appendChild(itemDiv);
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${key}</td>
+        <td>${JSON.stringify(value)}</td>
+        <td>
+          <button class="delete-btn" data-key="${key}">Delete</button>
+          <button class="edit-btn" data-key="${key}">Edit</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+    }
+
+    // Add event listeners to delete and edit buttons
+    tableBody.querySelectorAll('.delete-btn').forEach(button => {
+      button.addEventListener('click', async () => {
+        const key = button.getAttribute('data-key');
+        await deleteItem(key);
+      });
+    });
+
+    tableBody.querySelectorAll('.edit-btn').forEach(button => {
+      button.addEventListener('click', async () => {
+        const key = button.getAttribute('data-key');
+        openEditModal(key, items[key]);
+      });
+    });
+  }
+
+  // Function to delete an item
+  async function deleteItem(key) {
+    const confirmDelete = confirm(`Are you sure you want to delete the item with key '${key}'?`);
+    if (confirmDelete) {
+      localStorage.removeItem(key); // Remove from local storage
+      await fetchAndDisplayStorageItems('localStorage'); // Refresh display
     }
   }
+
+  // Modal functionality
+  const modal = document.getElementById("editModal");
+  const closeBtn = modal.querySelector(".close");
+  const editKeyInput = document.getElementById("editKey");
+  const editValueInput = document.getElementById("editValue");
+  const saveEditBtn = document.getElementById("saveEdit");
+  const cancelEditBtn = document.getElementById("cancelEdit");
+
+  // Open modal function
+  function openEditModal(key, value) {
+    editKeyInput.value = key;
+    editValueInput.value = JSON.stringify(value);
+    modal.style.display = "block";
+  }
+
+  // Close modal function
+  closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // Save edit button functionality
+  saveEditBtn.addEventListener("click", async () => {
+    const key = editKeyInput.value;
+    let value;
+    try {
+      value = JSON.parse(editValueInput.value);
+    } catch (e) {
+      value = editValueInput.value;
+    }
+    localStorage.setItem(key, JSON.stringify(value)); // Update local storage
+    modal.style.display = "none";
+    await fetchAndDisplayStorageItems('localStorage'); // Refresh display
+  });
+
+  // Cancel edit button functionality
+  cancelEditBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // Close modal if clicked outside of it
+  window.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  });
 });

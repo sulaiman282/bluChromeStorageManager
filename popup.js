@@ -1,19 +1,21 @@
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("Popup script loaded");
 
+  let currentStorageType = "localStorage";
+
   // Fetch and display local storage items on load
-  await fetchAndDisplayStorageItems("localStorage");
+  await fetchAndDisplayStorageItems(currentStorageType);
 
   // Event listener for radio button changes
   document.querySelectorAll('input[name="storageType"]').forEach((radio) => {
     radio.addEventListener("change", async (event) => {
-      const storageType = event.target.value;
+      currentStorageType = event.target.value;
       console.log(
         `Fetching ${
-          storageType.charAt(0).toUpperCase() + storageType.slice(1)
+          currentStorageType.charAt(0).toUpperCase() + currentStorageType.slice(1)
         } Items...`
       );
-      await fetchAndDisplayStorageItems(storageType);
+      await fetchAndDisplayStorageItems(currentStorageType);
     });
   });
 
@@ -138,7 +140,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       row.innerHTML = `
         <td>${key}</td>
         <td>${JSON.stringify(value)}</td>
-       <td>
+        <td>
           <span class="edit-icon" data-key="${key}"><i class="fas fa-edit" style="color:black;font-size:16px;"></i></span>
           <span class="delete-icon" data-key="${key}"><i class="fas fa-trash-alt" style="color:red;font-size:16px;margin-left:5px;"></i></span>
         </td>
@@ -151,11 +153,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       icon.addEventListener("click", async () => {
         const key = icon.getAttribute("data-key");
         await deleteItem(key);
+        await fetchAndDisplayStorageItems(currentStorageType); // Refresh display
       });
     });
 
     tableBody.querySelectorAll(".edit-icon").forEach((icon) => {
-      icon.addEventListener("click", async () => {
+      icon.addEventListener("click", () => {
         const key = icon.getAttribute("data-key");
         openEditModal(key, items[key]);
       });
@@ -164,13 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to delete an item
   async function deleteItem(key) {
-    const confirmDelete = confirm(
-      `Are you sure you want to delete the item with key '${key}'?`
-    );
-    if (confirmDelete) {
-      localStorage.removeItem(key); // Remove from local storage
-      await fetchAndDisplayStorageItems("localStorage"); // Refresh display
-    }
+    localStorage.removeItem(key); // Remove from local storage
   }
 
   // Modal functionality
@@ -204,7 +201,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     localStorage.setItem(key, JSON.stringify(value)); // Update local storage
     modal.style.display = "none";
-    await fetchAndDisplayStorageItems("localStorage"); // Refresh display
+    await fetchAndDisplayStorageItems(currentStorageType); // Refresh display
   });
 
   // Cancel edit button functionality

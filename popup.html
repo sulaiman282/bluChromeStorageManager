@@ -1,61 +1,59 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>BluStorage Manager</title>
-    <link rel="stylesheet" type="text/css" href="styles.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  </head>
-  <body>
-    <div style="display: flex; align-items: center; gap: 8px; display: flex; align-items: center; justify-content: center;">
-      <img src="/b.png" style="width: 24px; height: 24px; object-fit: contain;"/>
-      <h1>BluStorage Manager</h1>
-    </div>
-  
-    <form id="storageForm">
-      <label >
-        <input type="radio" name="storageType" value="localStorage" checked />
-        <span>Local Storage</span>
-      </label>
-      <label>
-        <input type="radio" name="storageType" value="sessionStorage" />
-        <span>Session Storage</span>
-      </label>
-      <label>
-        <input type="radio" name="storageType" value="cookies" />
-        <span>Cookies</span>
-      </label>
-    </form>
-    <table id="storageTable">
-      <thead>
-        <tr>
-          <th>Key</th>
-          <th>Value</th>
-          <th style="text-align: center;">Options</th>
-        </tr>
-      </thead>
-      <tbody id="storageTableBody">
-        <!-- Data rows will be dynamically added here -->
-      </tbody>
-    </table>
+<head>
+  <title>BluStorage Manager</title>
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+  <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+    <img src="/b.png" style="width: 24px; height: 24px; object-fit: contain;"/>
+    <h1>BluStorage Manager</h1>
+  </div>
 
-    <!-- Modal for editing -->
-    <div id="editModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Edit Item</h2>
-        <label for="editKey">Key:</label>
-        <input type="text" id="editKey" readonly />
-        <label for="editValue">Value:</label>
-        <textarea id="editValue" rows="5"></textarea>
-        <div style="display: flex; justify-content: flex-end; gap: 6px;">
-          <button id="saveEdit" style="padding: 8px 16px; background-color: #007bff; color: #fff; border: none; cursor: pointer; border-radius: 4px;">Save</button>
-          <button id="cancelEdit" style="padding: 8px 16px; background-color: #6c757d; color: #fff; border: none; cursor: pointer; border-radius: 4px;">Cancel</button>
-        </div>
-        
+  <form id="storageForm">
+    <label>
+      <input type="radio" name="storageType" value="localStorage" checked />
+      <span>Local Storage</span>
+    </label>
+    <label>
+      <input type="radio" name="storageType" value="sessionStorage" />
+      <span>Session Storage</span>
+    </label>
+    <label>
+      <input type="radio" name="storageType" value="cookies" />
+      <span>Cookies</span>
+    </label>
+  </form>
+  <table id="storageTable">
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Value</th>
+        <th style="text-align: center;">Options</th>
+      </tr>
+    </thead>
+    <tbody id="storageTableBody">
+      <!-- Data rows will be dynamically added here -->
+    </tbody>
+  </table>
+
+  <!-- Modal for editing -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Edit Item</h2>
+      <label for="editKey">Key:</label>
+      <input type="text" id="editKey" readonly />
+      <label for="editValue">Value:</label>
+      <textarea id="editValue" rows="5"></textarea>
+      <div style="display: flex; justify-content: flex-end; gap: 6px;">
+        <button id="saveEdit" style="padding: 8px 16px; background-color: #007bff; color: #fff; border: none; cursor: pointer; border-radius: 4px;">Save</button>
+        <button id="cancelEdit" style="padding: 8px 16px; background-color: #6c757d; color: #fff; border: none; cursor: pointer; border-radius: 4px;">Cancel</button>
       </div>
     </div>
+  </div>
 
-    <!-- Include web-storage-manager library -->
-    <script src="popup.js"></script>
-  </body>
+  <script src="popup.js"></script>
+</body>
 </html>

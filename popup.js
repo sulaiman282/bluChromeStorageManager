@@ -3,23 +3,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let currentStorageType = "localStorage";
 
-  // Fetch and display local storage items on load
+  // Fetch and display storage items based on the initial selection
   await fetchAndDisplayStorageItems(currentStorageType);
 
   // Event listener for radio button changes
   document.querySelectorAll('input[name="storageType"]').forEach((radio) => {
     radio.addEventListener("change", async (event) => {
       currentStorageType = event.target.value;
-      console.log(
-        `Fetching ${
-          currentStorageType.charAt(0).toUpperCase() + currentStorageType.slice(1)
-        } Items...`
-      );
+      console.log(`Fetching ${currentStorageType} Items...`);
       await fetchAndDisplayStorageItems(currentStorageType);
     });
   });
 
-  // Function to fetch and display storage items
+  // Function to fetch and display storage items based on storage type
   async function fetchAndDisplayStorageItems(storageType) {
     let items;
     switch (storageType) {
@@ -32,43 +28,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       case "cookies":
         items = await getCookies();
         break;
+      default:
+        console.error("Unknown storage type:", storageType);
+        return;
     }
-    console.log(
-      `${storageType.charAt(0).toUpperCase() + storageType.slice(1)} Items:`,
-      items
-    );
+    console.log(`${storageType} Items:`, items);
     displayItems(items);
   }
 
   // Function to get Local Storage items
   async function getLocalStorageItems() {
     return new Promise((resolve) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.scripting.executeScript(
-          {
-            target: { tabId: tabs[0].id },
-            func: () => {
-              return Object.entries(localStorage).reduce(
-                (acc, [key, value]) => {
-                  try {
-                    acc[key] = JSON.parse(value);
-                  } catch (e) {
-                    acc[key] = value;
-                  }
-                  return acc;
-                },
-                {}
-              );
-            },
-          },
-          (results) => {
-            if (results && results[0] && results[0].result) {
-              resolve(results[0].result);
-            } else {
-              resolve({});
-            }
-          }
-        );
+      chrome.storage.local.get(null, (items) => {
+        resolve(items);
       });
     });
   }
@@ -167,7 +139,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to delete an item
   async function deleteItem(key) {
-    localStorage.removeItem(key); // Remove from local storage
+    return new Promise((resolve) => {
+      chrome.storage.local.remove(key, () => {
+        resolve();
+      });
+    });
   }
 
   // Modal functionality
@@ -199,7 +175,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (e) {
       value = editValueInput.value;
     }
-    localStorage.setItem(key, JSON.stringify(value)); // Update local storage
+    await updateItem(key, value,currentStorageType); // Update local storage
     modal.style.display = "none";
     await fetchAndDisplayStorageItems(currentStorageType); // Refresh display
   });
@@ -215,4 +191,63 @@ document.addEventListener("DOMContentLoaded", async () => {
       modal.style.display = "none";
     }
   });
+
+  // Function to update an item in local storage
+  async function updateItem(key, value, storageType) {
+    switch (storageType) {
+      case "localStorage":
+        return updateLocalStorageItem(key, value);
+      case "sessionStorage":
+        return updateSessionStorageItem(key, value);
+      case "cookies":
+        return updateCookieItem(key, value);
+      default:
+        console.error("Unknown storage type:", storageType);
+        return;
+    }
+  }
+  
+  // Function to update an item in Local Storage
+  async function updateLocalStorageItem(key, value) {
+    return new Promise((resolve) => {
+      chrome.storage.local.set({ [key]: value }, () => {
+        resolve();
+      });
+    });
+  }
+  
+  // Function to update an item in Session Storage
+  async function updateSessionStorageItem(key, value) {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.scripting.executeScript(
+          {
+            target: { tabId: tabs[0].id },
+            func: (key, value) => {
+              sessionStorage[key] = JSON.stringify(value);
+            },
+            args: [key, value],
+          },
+          () => {
+            resolve();
+          }
+        );
+      });
+    });
+  }
+  
+  // Function to update an item in Cookies
+  async function updateCookieItem(key, value) {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.cookies.set({
+          url: tabs[0].url,
+          name: key,
+          value: JSON.stringify(value),
+        }, () => {
+          resolve();
+        });
+      });
+    });
+  }
 });

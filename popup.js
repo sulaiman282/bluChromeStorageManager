@@ -15,6 +15,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // Event listener for save new item button
+  const saveNewItemBtn = document.getElementById("saveNewItem");
+  if (saveNewItemBtn) {
+    saveNewItemBtn.addEventListener("click", async () => {
+      const newKey = document.getElementById("newKey").value;
+      const newValue = document.getElementById("newValue").value;
+
+      if (!newKey || !newValue) {
+        alert("Please enter both key and value.");
+        return;
+      }
+
+      await addItem(newKey, newValue);
+    });
+  }
+
   // Function to fetch and display storage items based on storage type
   async function fetchAndDisplayStorageItems(storageType) {
     let items;
@@ -34,6 +50,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     console.log(`${storageType} Items:`, items);
     displayItems(items);
+  }
+
+  // Function to add a new item
+  async function addItem(key, value) {
+    switch (currentStorageType) {
+      case "localStorage":
+        await addLocalStorageItem(key, value);
+        break;
+      case "sessionStorage":
+        await addSessionStorageItem(key, value);
+        break;
+      case "cookies":
+        await addCookieItem(key, value);
+        break;
+      default:
+        console.error("Unknown storage type:", currentStorageType);
+        return;
+    }
+
+    // Refresh display after adding new item
+    await fetchAndDisplayStorageItems(currentStorageType);
+    // Clear input fields after adding item
+    document.getElementById("newKey").value = "";
+    document.getElementById("newValue").value = "";
   }
 
   // Function to get Local Storage items
@@ -124,10 +164,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Function to display items in the table
   function displayItems(items) {
     const tableBody = document.getElementById("storageTableBody");
+    const firstRow = tableBody.rows[0]; // Capture the first row
     tableBody.innerHTML = ""; // Clear previous table rows
 
+    if (firstRow) {
+      tableBody.appendChild(firstRow); // Re-append the first row
+    }
+
     if (Object.keys(items).length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="3">No items found.</td></tr>';
       return;
     }
 
@@ -136,32 +180,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       row.innerHTML = `
         <td>${key}</td>
         <td>${JSON.stringify(value)}</td>
-        <td>
+       <td>
           <span class="edit-icon" data-key="${key}"><i class="fas fa-edit" style="color:black;font-size:16px;"></i></span>
           <span class="delete-icon" data-key="${key}"><i class="fas fa-trash-alt" style="color:red;font-size:16px;margin-left:5px;"></i></span>
         </td>
       `;
       tableBody.appendChild(row);
+      // Add event listeners to delete and edit icons
+      tableBody.querySelectorAll(".delete-icon").forEach((icon) => {
+        icon.addEventListener("click", async () => {
+          const key = icon.getAttribute("data-key");
+          await deleteItem(key);
+          await fetchAndDisplayStorageItems(currentStorageType); // Refresh display
+        });
+      });
+
+      tableBody.querySelectorAll(".edit-icon").forEach((icon) => {
+        icon.addEventListener("click", () => {
+          const key = icon.getAttribute("data-key");
+          openEditModal(key, items[key]);
+        });
+      });
     }
-
-    // Add event listeners to delete and edit icons
-    tableBody.querySelectorAll(".delete-icon").forEach((icon) => {
-      icon.addEventListener("click", async () => {
-        const key = icon.getAttribute("data-key");
-        await deleteItem(key);
-        await fetchAndDisplayStorageItems(currentStorageType); // Refresh display
-      });
-    });
-
-    tableBody.querySelectorAll(".edit-icon").forEach((icon) => {
-      icon.addEventListener("click", () => {
-        const key = icon.getAttribute("data-key");
-        openEditModal(key, items[key]);
-      });
-    });
   }
 
-  // Function to delete an item
   // Function to delete an item
   async function deleteItem(key) {
     switch (currentStorageType) {
@@ -351,6 +393,71 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to update an item in Cookies
   async function updateCookieItem(key, value) {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.cookies.set(
+          {
+            url: tabs[0].url,
+            name: key,
+            value: JSON.stringify(value),
+          },
+          () => {
+            resolve();
+          }
+        );
+      });
+    });
+  }
+
+  // Function to add an item to local storage
+  async function addLocalStorageItem(key, value) {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+        if (!tab) {
+          console.error("No active tab found.");
+          resolve();
+          return;
+        }
+
+        chrome.scripting.executeScript(
+          {
+            target: { tabId: tab.id },
+            func: (key, value) => {
+              localStorage[key] = JSON.stringify(value);
+            },
+            args: [key, value],
+          },
+          () => {
+            resolve();
+          }
+        );
+      });
+    });
+  }
+
+  // Function to add an item to session storage
+  async function addSessionStorageItem(key, value) {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.scripting.executeScript(
+          {
+            target: { tabId: tabs[0].id },
+            func: (key, value) => {
+              sessionStorage[key] = JSON.stringify(value);
+            },
+            args: [key, value],
+          },
+          () => {
+            resolve();
+          }
+        );
+      });
+    });
+  }
+
+  // Function to add a cookie item
+  async function addCookieItem(key, value) {
     return new Promise((resolve) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         chrome.cookies.set(

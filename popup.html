@@ -47,7 +47,14 @@
         </tr>
       </thead>
       <tbody id="storageTableBody">
-        <!-- Data rows will be dynamically added here -->
+        <tr id="newItemRow">
+          <td><input type="text" id="newKey" placeholder="Enter key" /></td>
+          <td><input type="text" id="newValue" placeholder="Enter value" /></td>
+          <td>
+            <button id="saveNewItem" class="modal-btn">Save</button>
+          </td>
+        </tr>
+        <!-- Existing data rows will be dynamically added here -->
       </tbody>
     </table>
 

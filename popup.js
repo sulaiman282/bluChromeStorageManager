@@ -199,6 +199,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (e) {
       value = editValueInput.value;
     }
+    
     await updateItem(key, value, currentStorageType); // Update local storage
     modal.style.display = "none";
     await fetchAndDisplayStorageItems(currentStorageType); // Refresh display
@@ -232,26 +233,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Function to update an item in Local Storage
-  async function updateLocalStorageItem(key, value) {
-    return new Promise((resolve) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs[0];
-        if (!tab) {
-          console.error("No active tab found.");
-          resolve();
-          return;
-        }
+// Function to update an item in Local Storage
+async function updateLocalStorageItem(key, value) {
+  return new Promise((resolve) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      if (!tab) {
+        console.error("No active tab found.");
+        resolve();
+        return;
+      }
 
-        chrome.storage.local.get(tab.url, (result) => {
-          let items = result[tab.url] || {};
-          items[key] = value;
-          chrome.storage.local.set({ [tab.url]: items }, () => {
-            resolve();
-          });
-        });
-      });
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: tab.id },
+          func: (key, value) => {
+            localStorage[key] = JSON.stringify(value);
+          },
+          args: [key, value],
+        },
+        () => {
+          resolve();
+        }
+      );
     });
-  }
+  });
+}
+
 
   // Function to update an item in Session Storage
   async function updateSessionStorageItem(key, value) {

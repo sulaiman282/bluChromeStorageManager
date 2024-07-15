@@ -1,26 +1,33 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   console.log("Popup script loaded");
 
-  document.getElementById("localStorageBtn").addEventListener("click", async () => {
-    console.log("Fetching Local Storage Items...");
-    const localStorageItems = await getLocalStorageItems();
-    console.log("Local Storage Items:", localStorageItems);
-    displayItems(localStorageItems);
+  // Fetch and display local storage items on load
+  await fetchAndDisplayStorageItems('localStorage');
+
+  document.querySelectorAll('input[name="storageType"]').forEach(radio => {
+    radio.addEventListener('change', async (event) => {
+      const storageType = event.target.value;
+      console.log(`Fetching ${storageType.charAt(0).toUpperCase() + storageType.slice(1)} Items...`);
+      await fetchAndDisplayStorageItems(storageType);
+    });
   });
 
-  document.getElementById("sessionStorageBtn").addEventListener("click", async () => {
-    console.log("Fetching Session Storage Items...");
-    const sessionStorageItems = await getSessionStorageItems();
-    console.log("Session Storage Items:", sessionStorageItems);
-    displayItems(sessionStorageItems);
-  });
-
-  document.getElementById("cookiesBtn").addEventListener("click", async () => {
-    console.log("Fetching Cookies...");
-    const cookies = await getCookies();
-    console.log("Cookies:", cookies);
-    displayItems(cookies);
-  });
+  async function fetchAndDisplayStorageItems(storageType) {
+    let items;
+    switch (storageType) {
+      case 'localStorage':
+        items = await getLocalStorageItems();
+        break;
+      case 'sessionStorage':
+        items = await getSessionStorageItems();
+        break;
+      case 'cookies':
+        items = await getCookies();
+        break;
+    }
+    console.log(`${storageType.charAt(0).toUpperCase() + storageType.slice(1)} Items:`, items);
+    displayItems(items);
+  }
 
   async function getLocalStorageItems() {
     let localStorageData = {};

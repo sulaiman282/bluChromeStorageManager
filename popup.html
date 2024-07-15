@@ -6,11 +6,22 @@
 </head>
 <body>
   <h1>BluStorage Manager</h1>
-  <div>
-    <button id="localStorageBtn">Local Storage</button>
-    <button id="sessionStorageBtn">Session Storage</button>
-    <button id="cookiesBtn">Cookies</button>
-  </div>
+  <form id="storageForm">
+    <div>
+      <label>
+        <input type="radio" name="storageType" value="localStorage" checked>
+        Local Storage
+      </label>
+      <label>
+        <input type="radio" name="storageType" value="sessionStorage">
+        Session Storage
+      </label>
+      <label>
+        <input type="radio" name="storageType" value="cookies">
+        Cookies
+      </label>
+    </div>
+  </form>
   <div id="output"></div>
   <!-- Include web-storage-manager library -->
   <script src="popup.js"></script>

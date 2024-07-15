@@ -6,7 +6,6 @@ body {
   background-color: #f9f9f9;
   overflow: auto !important;
   min-height: 500px;
-
 }
 
 h1 {
@@ -15,7 +14,7 @@ h1 {
   line-height: normal;
   padding: 0;
   margin: 0;
-  color: #4F8CB2;
+  color: #4f8cb2;
 }
 form {
   display: flex;
@@ -36,10 +35,9 @@ label {
   cursor: pointer;
 }
 
-label input{
+label input {
   cursor: pointer;
 }
-
 
 table,
 th,
@@ -65,8 +63,8 @@ td:nth-child(3) {
   word-break: break-all;
   text-align: center;
 }
-td:nth-child(3) span:hover{
- cursor: pointer;
+td:nth-child(3) span:hover {
+  cursor: pointer;
 }
 
 #editModal {
@@ -106,8 +104,6 @@ td:nth-child(3) span:hover{
   margin-bottom: 10px;
   box-sizing: border-box;
 }
-
-
 
 .close {
   color: #aaa;

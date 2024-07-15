@@ -162,10 +162,80 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Function to delete an item
+  // Function to delete an item
   async function deleteItem(key) {
+    switch (currentStorageType) {
+      case "localStorage":
+        await deleteLocalStorageItem(key);
+        break;
+      case "sessionStorage":
+        await deleteSessionStorageItem(key);
+        break;
+      case "cookies":
+        await deleteCookieItem(key);
+        break;
+      default:
+        console.error("Unknown storage type:", currentStorageType);
+        return;
+    }
+
+    // Refresh display after deletion
+    await fetchAndDisplayStorageItems(currentStorageType);
+  }
+
+  // Function to delete an item from Local Storage
+  async function deleteLocalStorageItem(key) {
     return new Promise((resolve) => {
-      chrome.storage.local.remove(key, () => {
-        resolve();
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.scripting.executeScript(
+          {
+            target: { tabId: tabs[0].id },
+            func: (key) => {
+              localStorage.removeItem(key);
+            },
+            args: [key],
+          },
+          () => {
+            resolve();
+          }
+        );
+      });
+    });
+  }
+
+  // Function to delete an item from Session Storage
+  async function deleteSessionStorageItem(key) {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.scripting.executeScript(
+          {
+            target: { tabId: tabs[0].id },
+            func: (key) => {
+              sessionStorage.removeItem(key);
+            },
+            args: [key],
+          },
+          () => {
+            resolve();
+          }
+        );
+      });
+    });
+  }
+
+  // Function to delete a cookie item
+  async function deleteCookieItem(key) {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.cookies.remove(
+          {
+            url: tabs[0].url,
+            name: key,
+          },
+          () => {
+            resolve();
+          }
+        );
       });
     });
   }
@@ -199,7 +269,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (e) {
       value = editValueInput.value;
     }
-    
+
     await updateItem(key, value, currentStorageType); // Update local storage
     modal.style.display = "none";
     await fetchAndDisplayStorageItems(currentStorageType); // Refresh display
@@ -233,33 +303,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Function to update an item in Local Storage
-// Function to update an item in Local Storage
-async function updateLocalStorageItem(key, value) {
-  return new Promise((resolve) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs[0];
-      if (!tab) {
-        console.error("No active tab found.");
-        resolve();
-        return;
-      }
-
-      chrome.scripting.executeScript(
-        {
-          target: { tabId: tab.id },
-          func: (key, value) => {
-            localStorage[key] = JSON.stringify(value);
-          },
-          args: [key, value],
-        },
-        () => {
+  async function updateLocalStorageItem(key, value) {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+        if (!tab) {
+          console.error("No active tab found.");
           resolve();
+          return;
         }
-      );
-    });
-  });
-}
 
+        chrome.scripting.executeScript(
+          {
+            target: { tabId: tab.id },
+            func: (key, value) => {
+              localStorage[key] = JSON.stringify(value);
+            },
+            args: [key, value],
+          },
+          () => {
+            resolve();
+          }
+        );
+      });
+    });
+  }
 
   // Function to update an item in Session Storage
   async function updateSessionStorageItem(key, value) {

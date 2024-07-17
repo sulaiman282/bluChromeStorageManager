@@ -6,15 +6,11 @@
   "author": "Sk Sulaiman",
   "offline_enabled": true,
   "minimum_chrome_version": "88",
-  "permissions": [
-    "tabs",
-    "scripting",
-    "cookies",
-    "downloads",
-    "storage",
-    "unlimitedStorage",
-    "contextMenus"
-  ],
+ "permissions": [
+  "storage",
+  "cookies",
+  "scripting"
+],
   "incognito": "split",
   "host_permissions": ["<all_urls>"],
   "action": {
